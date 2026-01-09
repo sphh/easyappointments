@@ -56,6 +56,9 @@ class Booking_confirmation extends EA_Controller
 
         $add_to_google_url = $this->google_sync->get_add_to_google_url($appointment['id']);
 
+        // Retrieve webhook responses from session
+        $webhook_responses = $this->session->flashdata('webhook_responses') ?? [];
+
         html_vars([
             'page_title' => lang('success'),
             'company_color' => setting('company_color'),
@@ -63,6 +66,7 @@ class Booking_confirmation extends EA_Controller
             'matomo_analytics_url' => setting('matomo_analytics_url'),
             'matomo_analytics_site_id' => setting('matomo_analytics_site_id'),
             'add_to_google_url' => $add_to_google_url,
+            'webhook_responses' => $webhook_responses,
         ]);
 
         $this->load->view('pages/booking_confirmation');
