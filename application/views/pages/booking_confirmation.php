@@ -9,6 +9,23 @@
 <div class="mb-5">
     <h4 class="mb-5"><?= lang('appointment_registered') ?></h4>
 
+    <?php if (!empty(vars('webhook_responses'))): ?>
+        <div class="mt-5">
+            <?php foreach (vars('webhook_responses') as $response): ?>
+                <?php
+                    $response_data = $response['response_body'];
+                    $user_language = session('language') ?? config('language');
+                    $message = $response_data[$user_language] ?? $response_data['en'] ?? '';
+                ?>
+                <?php if (!empty($message)): ?>
+                    <div class="webhook-message">
+                        <?= $message ?>
+                    </div>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
     <p>
         <?= lang('appointment_details_was_sent_to_you') ?>
     </p>
