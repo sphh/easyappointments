@@ -49,17 +49,24 @@ class Webhooks_client
      * @param string $action Webhook action.
      * @param array $payload Payload data.
      *
-     * @return void|null
+     * @return array Array with webhook responses
      */
-    public function trigger(string $action, array $payload)
+    public function trigger(string $action, array $payload): array
     {
         $webhooks = $this->CI->webhooks_model->get();
+        $responses = [];
 
         foreach ($webhooks as $webhook) {
             if (str_contains($webhook['actions'], $action)) {
                 $this->call($webhook, $action, $payload);
+                $response = $this->call($webhook, $action, $payload);  
+                if ($response !== null) {
+                    $responses[] = $response;
+                }
             }
         }
+
+        return $responses;
     }
 
     /**
@@ -68,8 +75,10 @@ class Webhooks_client
      * @param array $webhook
      * @param string $action
      * @param array $payload
+     *
+     * @return array|null Webhook response data or null on error
      */
-    private function call(array $webhook, string $action, array $payload): void
+    private function call(array $webhook, string $action, array $payload): ?array
     {
         try {
             $client = new Client();
@@ -90,6 +99,15 @@ class Webhooks_client
             ]);
 
             // echo $response->getBody()->getContents(); // Use this for quick debugging
+            $statusCode = $response->getStatusCode();
+
+            return [
+                'webhook_id' => $webhook['id'] ?? null,
+                'webhook_name' => $webhook['name'] ?? 'Unknown',
+                'status_code' => $statusCode,
+                'response_body' => json_decode($response->getBody()->getContents(), true),
+                'success' => $statusCode >= 200 && $statusCode < 300,
+            ];
         } catch (Throwable $e) {
             log_message(
                 'error',
@@ -99,6 +117,8 @@ class Webhooks_client
                     $e->getMessage(),
             );
             log_message('error', $e->getTraceAsString());
+
+            return null;
         }
     }
 }
