@@ -471,11 +471,15 @@ class Booking extends EA_Controller
                 $manage_mode,
             );
 
-            $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
+            $webhook_responses = $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
+
+            // Store webhook responses in session for the confirmation page
+            $this->session->set_flashdata('webhook_responses', $webhook_responses);
 
             $response = [
                 'appointment_id' => $appointment['id'],
                 'appointment_hash' => $appointment['hash'],
+                'webhook_responses' => $webhook_responses,
             ];
 
             json_response($response);
